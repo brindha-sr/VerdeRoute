@@ -126,7 +126,6 @@ curl http://localhost:5000/recent-routes?limit=5
 ```
 
 ## Troubleshooting
-- MongoDB not connected: ensure MongoDB is running; look for "MongoDB connected" in server logs
 - Mapbox token error: routes won’t render; replace the token in `map.js`
 - CORS/port mismatch: align the frontend fetch URL with the backend port (5000 by default)
 - Nominatim rate limit: if geocoding fails repeatedly, wait a bit and retry
@@ -145,3 +144,4 @@ OpenStreetMap contributors, Leaflet, Mapbox, MongoDB, Express
 ---
 
 Happy green driving! 🌿
+
