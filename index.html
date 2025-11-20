@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenRoute</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+  <!-- Hamburger Icon -->
+  <div id="hamburger">☰</div>
+
+  <!-- Overlay -->
+  <div id="sidebarOverlay"></div>
+
+  <!-- Home Sidebar -->
+  <div id="homeSidebar" class="hidden" aria-label="Home navigation sidebar">
+    <div class="sidebar-header">
+      <div class="brand"><span class="logo">🌿</span><span>GreenRoute</span></div>
+      <button class="close-btn" aria-label="Close">×</button>
+    </div>
+    <nav class="sidebar-nav" role="navigation">
+      <button class="nav-btn" onclick="showHome()">Home</button>
+      <button class="nav-btn" onclick="showMap()">Map</button>
+    </nav>
+    <div class="sidebar-footer">
+      <small>Drive clean. Live green.</small>
+    </div>
+  </div>
+
+  <!-- Home Screen -->
+  <div id="homeScreen">
+    <h1>🌱 Choose a Greener Path</h1>
+    <p>Make smarter travel decisions for a better tomorrow.</p>
+    <div class="process-flow">
+      <div class="step" onclick="showContent('step1')">
+        <img src="first.jpg" alt="Step 1">
+        <p>Understand Impact</p>
+      </div>
+      <div class="arrow">⟶</div>
+      <div class="step" onclick="showContent('step2')">
+        <img src="emission.jpg" alt="Step 2">
+        <p>Calculate Emissions</p>
+      </div>
+      <div class="arrow">⟶</div>
+      <div class="step" onclick="showContent('step3')">
+        <img src="route.jpg" alt="Step 3">
+        <p>Choose Green Route</p>
+      </div>
+      <div class="arrow">⟶</div>
+      <div class="step" onclick="showContent('step4')">
+        <img src="img1.jpg" alt="Step 4">
+        <p>Reduce CO₂</p>
+      </div>
+    </div>
+
+    <!-- Rich content sections -->
+    <section class="content-grid">
+      <article class="card">
+        <h3>Why Green Routing?</h3>
+        <p>Optimizing your route can cut fuel usage and emissions while saving time and money. We analyze distance, traffic, and mode to suggest cleaner choices.</p>
+        <ul class="tick-list">
+          <li>Lower CO₂ footprint per trip</li>
+          <li>Smart alternatives based on distance</li>
+          <li>Healthier, active options for short trips</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>How It Works</h3>
+        <p>Enter your source, destination and vehicle details. We calculate emissions, estimate time, and show alternatives like public transport, cycling or EVs.</p>
+        <div class="kpis">
+          <div><span class="kpi">90%</span><small>cut by switching to EVs</small></div>
+          <div><span class="kpi">0g</span><small>for walking/cycling</small></div>
+          <div><span class="kpi">2x</span><small>health benefits</small></div>
+        </div>
+      </article>
+      <article class="card">
+        <h3>Tips to Drive Greener</h3>
+        <ul class="tick-list">
+          <li>Maintain steady speeds and avoid idling</li>
+          <li>Keep tires inflated and vehicle serviced</li>
+          <li>Carpool or take public transport when possible</li>
+          <li>Plan routes to avoid congestion hotspots</li>
+        </ul>
+      </article>
+      <article class="card tourist-card">
+        <h3>🌿 New: Tourist Green Routes</h3>
+        <p>Discover scenic routes that pass through parks, forests, lakes, and other natural attractions. Perfect for eco-tourism and nature lovers!</p>
+        <ul class="tick-list">
+          <li>Find green places along your route</li>
+          <li>Explore nature while traveling</li>
+          <li>Reduce stress with scenic views</li>
+          <li>Support eco-tourism initiatives</li>
+        </ul>
+        <button onclick="showMap()" class="tourist-feature-btn">Try Tourist Route</button>
+      </article>
+    </section>
+
+    <!-- Recent routes & theme toggle -->
+    <section class="utilities">
+      <div class="utility-head">
+        <h3>Recent Routes</h3>
+        <div class="utility-actions">
+          <button id="refreshRecent" class="mini-btn">Refresh</button>
+          <button id="themeToggle" class="mini-btn" aria-label="Toggle theme">🌙</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="recentTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>From → To</th>
+              <th>Mode</th>
+              <th>Dist (km)</th>
+              <th>CO₂ (g)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5">No data yet. Plan a route to see history.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">Tip: Press <kbd>Ctrl</kbd>+<kbd>H</kbd> for Home, <kbd>Ctrl</kbd>+<kbd>M</kbd> for Map, <kbd>T</kbd> for Tourist Route, and <kbd>/</kbd> to focus the Source field.</p>
+    </section>
+
+    <div id="step1" class="step-content">
+      <h2>Step 1: Understand Your Environmental Impact</h2>
+      <p>Learn how different transportation methods contribute to carbon emissions and their effects on the planet.</p>
+    </div>
+    <div id="step2" class="step-content">
+      <h2>Step 2: Calculate Emissions</h2>
+      <p>Input your travel details and get an instant estimate of your journey's CO₂ emissions.</p>
+    </div>
+    <div id="step3" class="step-content">
+      <h2>Step 3: Choose a Green Route</h2>
+      <p>Explore eco-friendly route options that reduce fuel consumption and pollution.</p>
+    </div>
+    <div id="step4" class="step-content">
+      <h2>Step 4: Reduce Carbon Footprint</h2>
+      <p>Adopt sustainable travel habits and make a positive impact on the environment.</p>
+    </div>
+  </div>
+  
+
+  <!-- Map Container -->
+  <div id="mapContainer">
+    <div id="sidebar" aria-label="Route options sidebar">
+      <div class="sidebar-header">
+        <div class="brand"><span class="logo">🌿</span><span>GreenRoute</span></div>
+        <button class="close-btn" aria-label="Close">×</button>
+      </div>
+      <div class="form-group">
+        <input type="text" id="source" placeholder="Enter Source" />
+        <button type="button" class="inline-btn" onclick="useCurrentLocationForSource()">📍 Use My Location</button>
+      </div>
+      <div class="form-group">
+        <input type="text" id="destination" placeholder="Enter Destination" />
+      </div>
+      
+      <!-- Vehicle Information Section -->
+      <div class="form-section">
+        <h4 class="section-title">🚗 Vehicle Information</h4>
+        <div class="form-group">
+          <select id="vehicleType">
+            <option value="car">Car</option>
+            <option value="bike">Bike/Motorcycle</option>
+            <option value="bus">Bus</option>
+            <option value="truck">Truck</option>
+            <option value="electric">Electric Vehicle</option>
+            <option value="hybrid">Hybrid Vehicle</option>
+            <option value="walking">Walking</option>
+            <option value="cycling">Cycling</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <select id="fuelType">
+            <option value="petrol">Petrol/Gasoline</option>
+            <option value="diesel">Diesel</option>
+            <option value="cng">CNG</option>
+            <option value="lpg">LPG</option>
+            <option value="ethanol">Ethanol</option>
+            <option value="electric">Electric</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <input type="number" id="modelYear" placeholder="Model Year (e.g., 2020)" min="1980" max="2025" required />
+        </div>
+        <div class="form-group">
+          <input type="number" id="engineSizeLiters" placeholder="Engine Size (Liters) - optional" min="0.5" max="20" step="0.1" />
+          <small class="field-hint">e.g., 1.6L, 2.0L, 3.5L - affects fuel consumption calculations</small>
+        </div>
+      </div>
+
+      <!-- Trip Details Section -->
+      <div class="form-section">
+        <h4 class="section-title">🗺️ Trip Details</h4>
+        <div class="form-group">
+          <select id="routeType">
+            <option value="city">City</option>
+            <option value="highway">Highway</option>
+            <option value="city_and_highway">City and Highway</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <select id="traffic">
+            <option value="normal">Normal Traffic</option>
+            <option value="stop_and_go">Stop & Go Traffic</option>
+            <option value="light">Light Traffic</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Vehicle Condition Section -->
+      <div class="form-section">
+        <h4 class="section-title">🔧 Vehicle Condition</h4>
+        <div class="form-group">
+          <input type="number" id="loadFactor" placeholder="Load Factor (1.0 = normal)" min="0.5" max="3.0" step="0.1" value="1.0" />
+          <small class="field-hint">1.0 = normal load, 1.5 = 50% extra load, 2.0 = double load</small>
+        </div>
+        <div class="form-group">
+          <input type="number" id="claimedEfficiency" placeholder="Claimed Efficiency" min="0.1" step="0.1" />
+          <small class="field-hint">Leave empty to use default values, or enter your vehicle's official efficiency rating</small>
+        </div>
+        <div class="form-group">
+          <select id="claimedEfficiencyUnit">
+            <option value="l_per_100km">L/100km</option>
+            <option value="km_per_liter">km/L</option>
+            <option value="mpg">MPG</option>
+            <option value="kwh_per_100km">kWh/100km</option>
+            <option value="wh_per_km">Wh/km</option>
+            <option value="kg_per_100km">kg/100km</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Energy Source Section -->
+      <div class="form-section">
+        <h4 class="section-title">⚡ Energy Source</h4>
+        <div class="form-group">
+          <select id="electricitySource">
+            <option value="grid_avg">Grid Average</option>
+            <option value="coal">Coal</option>
+            <option value="gas">Natural Gas</option>
+            <option value="hydro">Hydroelectric</option>
+            <option value="wind">Wind</option>
+            <option value="solar">Solar</option>
+            <option value="nuclear">Nuclear</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <div class="form-group">
+          <button onclick="findRoute()">🚗 Calculate Route & Emissions</button>
+        </div>
+        <div class="form-group">
+          <small style="color: #16a34a; font-weight: bold; display: block; margin-bottom: 5px;">🌿 Discover green places along your route!</small>
+          <button onclick="debugTouristRoute()" class="tourist-btn" id="touristBtn">🌿 Find Tourist Route</button>
+        </div>
+        <div class="form-group">
+          <button onclick="showHome()">⬅ Back to Home</button>
+        </div>
+      </div>
+    </div>
+    <div id="map"></div>
+    <div id="info-box">---</div>
+  </div>
+  
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="emissionCalculator.js?v=3"></script>
+  <script src="map.js?v=3"></script>
+  <script>
+    function showContent(id) {
+      document.querySelectorAll('.step-content').forEach(div => div.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // Smart form field dependencies and validation
+    function initializeSmartForm() {
+      console.log('Initializing smart form...');
+      const vehicleType = document.getElementById('vehicleType');
+      const fuelType = document.getElementById('fuelType');
+      const electricitySource = document.getElementById('electricitySource');
+      const claimedEfficiency = document.getElementById('claimedEfficiency');
+      const claimedEfficiencyUnit = document.getElementById('claimedEfficiencyUnit');
+      const engineSizeLiters = document.getElementById('engineSizeLiters');
+      
+      console.log('Form elements found:', {
+        vehicleType: vehicleType,
+        fuelType: fuelType,
+        electricitySource: electricitySource,
+        claimedEfficiency: claimedEfficiency,
+        claimedEfficiencyUnit: claimedEfficiencyUnit,
+        engineSizeLiters: engineSizeLiters
+      });
+      
+      // Vehicle type change handler
+      vehicleType.addEventListener('change', function() {
+        const type = this.value;
+        console.log('Vehicle type changed to:', type);
+        
+        // Update fuel type options based on vehicle type
+        if (type === 'electric') {
+          fuelType.value = 'electric';
+          fuelType.disabled = true;
+          electricitySource.parentElement.style.display = 'block';
+          engineSizeLiters.parentElement.style.display = 'none';
+        } else if (type === 'hybrid') {
+          fuelType.value = 'hybrid';
+          fuelType.disabled = true;
+          electricitySource.parentElement.style.display = 'none';
+          engineSizeLiters.parentElement.style.display = 'block';
+        } else {
+          fuelType.disabled = false;
+          electricitySource.parentElement.style.display = 'none';
+          engineSizeLiters.parentElement.style.display = 'block';
+          
+          // Reset fuel type to petrol for non-electric vehicles
+          if (fuelType.value === 'electric') {
+            fuelType.value = 'petrol';
+          }
+        }
+        
+        // Update efficiency unit options
+        updateEfficiencyUnits(type);
+      });
+      
+      // Fuel type change handler
+      fuelType.addEventListener('change', function() {
+        const fuel = this.value;
+        console.log('Fuel type changed to:', fuel);
+        if (fuel === 'electric') {
+          electricitySource.parentElement.style.display = 'block';
+        } else {
+          electricitySource.parentElement.style.display = 'none';
+        }
+      });
+      
+      // Efficiency unit change handler
+      claimedEfficiencyUnit.addEventListener('change', function() {
+        const unit = this.value;
+        console.log('Efficiency unit changed to:', unit);
+        if (unit === 'kwh_per_100km' || unit === 'wh_per_km') {
+          fuelType.value = 'electric';
+          vehicleType.value = 'electric';
+        }
+      });
+      
+      // Real-time validation
+      const inputs = document.querySelectorAll('.form-section input, .form-section select');
+      console.log('Found inputs for validation:', inputs.length);
+      inputs.forEach(input => {
+        input.addEventListener('blur', validateField);
+        input.addEventListener('input', clearValidation);
+      });
+      
+      // Initialize form state
+      vehicleType.dispatchEvent(new Event('change'));
+      console.log('Smart form initialization complete');
+    }
+    
+    function updateEfficiencyUnits(vehicleType) {
+      const efficiencyUnit = document.getElementById('claimedEfficiencyUnit');
+      const currentValue = efficiencyUnit.value;
+      
+      if (vehicleType === 'electric') {
+        efficiencyUnit.innerHTML = `
+          <option value="kwh_per_100km">kWh/100km</option>
+          <option value="wh_per_km">Wh/km</option>
+        `;
+      } else if (vehicleType === 'bike') {
+        efficiencyUnit.innerHTML = `
+          <option value="l_per_100km">L/100km</option>
+          <option value="km_per_liter">km/L</option>
+          <option value="mpg">MPG</option>
+        `;
+      } else {
+        efficiencyUnit.innerHTML = `
+          <option value="l_per_100km">L/100km</option>
+          <option value="km_per_liter">km/L</option>
+          <option value="mpg">MPG</option>
+        `;
+      }
+      
+      // Try to restore previous value if it's still valid
+      if (efficiencyUnit.querySelector(`option[value="${currentValue}"]`)) {
+        efficiencyUnit.value = currentValue;
+      }
+    }
+    
+    function validateField(event) {
+      const field = event.target;
+      const value = field.value.trim();
+      const formGroup = field.closest('.form-group');
+      
+      // Remove previous validation states
+      formGroup.classList.remove('success', 'error');
+      
+      // Basic validation
+      if (field.hasAttribute('required') && !value) {
+        formGroup.classList.add('error');
+        return false;
+      }
+      
+      // Number validation
+      if (field.type === 'number' && value) {
+        const num = parseFloat(value);
+        const min = parseFloat(field.min);
+        const max = parseFloat(field.max);
+        
+        if (isNaN(num) || (min && num < min) || (max && num > max)) {
+          formGroup.classList.add('error');
+          return false;
+        }
+      }
+      
+      // Year validation
+      if (field.id === 'modelYear' && value) {
+        const year = parseInt(value);
+        const currentYear = new Date().getFullYear();
+        if (year < 1980 || year > currentYear) {
+          formGroup.classList.add('error');
+          return false;
+        }
+      }
+      
+      // If we get here, validation passed
+      if (value) {
+        formGroup.classList.add('success');
+      }
+      
+      return true;
+    }
+    
+    function clearValidation(event) {
+      const formGroup = event.target.closest('.form-group');
+      formGroup.classList.remove('success', 'error');
+    }
+    
+    function validateForm() {
+      const inputs = document.querySelectorAll('.form-section input, .form-section select');
+      let isValid = true;
+      
+      inputs.forEach(input => {
+        if (!validateField({ target: input })) {
+          isValid = false;
+        }
+      });
+      
+      return isValid;
+    }
+
+    // Load recent routes
+    async function loadRecent() {
+      try {
+        const res = await fetch('http://localhost:5000/recent-routes?limit=8');
+        const data = await res.json();
+        const tbody = document.querySelector('#recentTable tbody');
+        if (!data.items || data.items.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">No data yet. Plan a route to see history.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = data.items.map(r => {
+          const d = new Date(r.date);
+          const ds = d.toLocaleDateString();
+          const trip = `${r.source} → ${r.destination}`;
+          const dist = typeof r.distance === 'number' ? r.distance.toFixed(2) : r.distance;
+          const co2 = typeof r.emissions === 'number' ? r.emissions.toFixed(2) : r.emissions;
+          return `<tr><td>${ds}</td><td>${trip}</td><td>${r.vehicleType}</td><td>${dist}</td><td>${co2}</td></tr>`;
+        }).join('');
+      } catch (e) {
+        console.error('recent load', e);
+      }
+    }
+
+    // Debug function for tourist route
+    function debugTouristRoute() {
+      console.log('Tourist route button clicked!');
+      console.log('Checking if findTouristRoute function exists:', typeof findTouristRoute);
+      
+      if (typeof findTouristRoute === 'function') {
+        console.log('Calling findTouristRoute...');
+        findTouristRoute();
+      } else {
+        console.error('findTouristRoute function not found!');
+        alert('Tourist route function not available. Please check the console for errors.');
+      }
+    }
+    //findTouristRoute=document.getElementById("findRouteBtn").addEventListener("click", findTouristRoute);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRecent();
+      const refreshBtn = document.getElementById('refreshRecent');
+      if (refreshBtn) refreshBtn.addEventListener('click', loadRecent);
+      
+      // Initialize smart form functionality
+      initializeSmartForm();
+
+      // Theme toggle
+      const toggle = document.getElementById('themeToggle');
+      if (toggle) {
+        toggle.addEventListener('click', () => {
+          document.documentElement.classList.toggle('dark');
+          toggle.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+        });
+      }
+
+      // Keyboard shortcuts (guard against undefined key)
+      document.addEventListener('keydown', (e) => {
+        const key = (e && typeof e.key === 'string') ? e.key.toLowerCase() : '';
+        if (!key) return;
+        // Ctrl+H → Home
+        if (e.ctrlKey && key === 'h') { e.preventDefault(); showHome(); }
+        // Ctrl+M → Map
+        if (e.ctrlKey && key === 'm') { e.preventDefault(); showMap(); }
+        // T → Tourist route helper (unchanged)
+        if (!e.ctrlKey && key === 't') {
+          showMap();
+          setTimeout(() => {
+            if (typeof findTouristRoute === 'function') {
+              const destEl = document.getElementById('destination');
+              if (destEl) destEl.focus();
+            }
+          }, 500);
+        }
+        // / → focus Source
+        if (!e.ctrlKey && key === '/') {
+          const el = document.getElementById('source');
+          if (el) { e.preventDefault(); el.focus(); }
+        }
+      });
+    });
+  </script>
+  <footer id="footer">
+    <div class="footer-content">
+      <p>VerdeRoute &copy; 2025 — Drive clean. Live green.</p>
+    </div>
+  </footer>
+</body>
+</html>
