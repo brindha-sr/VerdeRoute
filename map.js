@@ -1,13 +1,12 @@
-let routeLayers = []; // Store main + alternative routes
+let routeLayers = []; 
 let map, userMarker, sourceMarker, destMarker, routeLine;
 let currentPrimaryRoute = null;
 let currentRouteGeometry = null;
 let currentRouteMeta = null;
-let currentRouteRequestId = 0; // incremented for each findRoute call to avoid races
-let TRAFFIC_KEY = null; // populated by ensureApiKeyRoles()
-let apiRoleDetectionRan = false; // CRITICAL: Track if key detection has run
-let coloredRouteLayers = []; // track route-segment layers created by traffic colorization
-// Determine backend base URL. When opened via file:// (origin null), default to localhost server.
+let currentRouteRequestId = 0; 
+let TRAFFIC_KEY = null; 
+let apiRoleDetectionRan = false; 
+let coloredRouteLayers = []; 
 const BACKEND_BASE = (function(){
   try {
     const proto = (window && window.location && window.location.protocol) || '';
@@ -16,7 +15,7 @@ const BACKEND_BASE = (function(){
     return (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'http://localhost:5000';
   } catch(_) { return 'http://localhost:5000'; }
 })();
-// Map UI vehicle types to GraphHopper vehicle parameter names
+
 const VEHICLE_MAP = {
   car: 'car',
   petrol: 'car',
@@ -26,21 +25,17 @@ const VEHICLE_MAP = {
   bike: 'bike',
   cycling: 'bike',
   walking: 'foot',
-  bus: 'car', // GraphHopper may not support 'bus' routing; fallback to 'car'
+  bus: 'car', 
   truck: 'truck',
   motorcycle: 'motorcycle'
 };
-// In-memory incidents store for demo
+
 if (!window.liveIncidents) window.liveIncidents = [];
-// incidentsLayer will be created on demand
-// By default, do NOT auto-load incidents from the backend. Set to true
-// only when you want live incidents to be fetched automatically.
 const AUTO_LOAD_INCIDENTS = false;
 
-// Helper: enable or disable automatic live-incident fetching at runtime
 function setAutoLoadIncidents(enabled) {
   if (enabled && !window._autoIncidentsInterval) {
-    // initial fetch and set periodic refresh
+    
     try { fetchAndRenderIncidents(); } catch(_) {}
     window._autoIncidentsInterval = setInterval(fetchAndRenderIncidents, 60000);
   } else if (!enabled && window._autoIncidentsInterval) {
@@ -49,7 +44,6 @@ function setAutoLoadIncidents(enabled) {
   }
 }
 
-// Robust incident fetching and rendering
 async function fetchAndRenderIncidents() {
   try {
     const resp = await fetch(`${BACKEND_BASE}/recent-incidents?limit=50&hours=48`);
@@ -61,7 +55,7 @@ async function fetchAndRenderIncidents() {
       renderIncidents(); // keep current incidents
       return;
     }
-    // Update in-memory store and render
+    
     window.liveIncidents = data.incidents.map(inc => ({
       ...inc,
       expired: false,
@@ -95,9 +89,8 @@ function showIncidentWarning(msg) {
   setTimeout(() => { try { el.remove(); } catch(_) {} }, 6000);
 }
 
-// Call this on page load and every 60 seconds
 document.addEventListener("DOMContentLoaded", () => {
-  // Do not auto-fetch incidents unless explicitly enabled.
+
   if (typeof AUTO_LOAD_INCIDENTS !== 'undefined' && AUTO_LOAD_INCIDENTS) {
     fetchAndRenderIncidents();
     setInterval(fetchAndRenderIncidents, 60000); // refresh every 60s
@@ -115,7 +108,6 @@ const emissionRates = {
   cycling: 0
 };
 
-// Fetch with timeout helper to avoid long hangs
 async function fetchWithTimeout(resource, options = {}, timeoutMs = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -152,19 +144,11 @@ const TOURIST_CATEGORIES = {
   malls: { key: 'malls', label: 'Shopping Malls', emoji: '🛍️', color: '#E91E63' },
   markets: { key: 'markets', label: 'Markets', emoji: '🏪', color: '#FF9800' }
 };
-// const TOURIST_CATEGORIES = {
-//   parks: { key: "parks", label: "Parks", emoji: "🌳", color: "#4CAF50" },
-//   gardens: { key: "gardens", label: "Gardens", emoji: "🌺", color: "#8BC34A" },
-//   beaches: { key: "beaches", label: "Beaches", emoji: "🏖️", color: "#FFB74D" },
-//   rivers: { key: "rivers", label: "Rivers", emoji: "🏞️", color: "#2196F3" },
-//   lakes: { key: "lakes", label: "Lakes", emoji: "🏞️", color: "#29B6F6" },
-//   mountains: { key: "mountains", label: "Mountains", emoji: "⛰️", color: "#9E9E9E" },
-// };
-// ==== TomTom Integration Config (added) ====
+
 function displayTouristRoutes(touristData) {
-  // Clear previous tourist markers to avoid duplication
+  
   try { clearTouristMarkers(); } catch(_) {}
-  // Only show places that lie within a buffer of the current route geometry
+  
   const filtered = filterGroupedByRoute(touristData, ROUTE_POI_BUFFER_METERS);
   for (const key in TOURIST_CATEGORIES) {
     const category = TOURIST_CATEGORIES[key];
@@ -188,7 +172,7 @@ function displayTouristRoutes(touristData) {
   }
 }
 
-// Save route data to MongoDB using fetch to backend API endpoint
+
 async function saveRouteToDB(routeData) {
   try {
     const response = await fetch("http://localhost:5000/save-route", {
@@ -214,8 +198,6 @@ const TOMTOM_CONFIG = {
 };
 let trafficTileLayers = [];
 
-// Map of our internal category keys to TomTom categorySearch terms.
-// These are best-effort mappings; TomTom may return empty results for some categories.
 const TOMTOM_CATEGORY_MAP = {
   parks: 'park',
   gardens: 'park',
