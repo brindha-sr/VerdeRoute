@@ -9,6 +9,9 @@ let apiRoleDetectionRan = false;
 let coloredRouteLayers = [];
 // Replace with your own Mapbox public access token (starts with pk.)
 const MAPBOX_TOKEN = window.MAPBOX_TOKEN || '';
+if (!MAPBOX_TOKEN) {
+  console.warn('MAPBOX_TOKEN is not set. Mapbox geocoding will be skipped. Set window.MAPBOX_TOKEN before loading map.js.');
+}
 const BACKEND_BASE = (function(){
   try {
     const proto = (window && window.location && window.location.protocol) || '';
@@ -1621,17 +1624,19 @@ async function geocode(location) {
   const center = map && typeof map.getCenter === 'function' ? map.getCenter() : null;
   const proximity = center ? `&proximity=${center.lng},${center.lat}` : '';
   const mapboxToken = MAPBOX_TOKEN;
-  try {
-    const mbUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(trimmed)}.json?limit=1&language=en&country=in${proximity}&access_token=${mapboxToken}`;
-    const mbRes = await fetchWithTimeout(mbUrl, {}, 9000);
-    if (mbRes.ok) {
-      const mb = await mbRes.json();
-      if (mb && mb.features && mb.features.length > 0) {
-        const [lon, lat] = mb.features[0].geometry.coordinates;
-        if (isFinite(lat) && isFinite(lon)) return [lat, lon];
+  if (mapboxToken) {
+    try {
+      const mbUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(trimmed)}.json?limit=1&language=en&country=in${proximity}&access_token=${mapboxToken}`;
+      const mbRes = await fetchWithTimeout(mbUrl, {}, 9000);
+      if (mbRes.ok) {
+        const mb = await mbRes.json();
+        if (mb && mb.features && mb.features.length > 0) {
+          const [lon, lat] = mb.features[0].geometry.coordinates;
+          if (isFinite(lat) && isFinite(lon)) return [lat, lon];
+        }
       }
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
   try {
     const params = new URLSearchParams({
