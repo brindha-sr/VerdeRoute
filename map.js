@@ -6,7 +6,9 @@ let currentRouteMeta = null;
 let currentRouteRequestId = 0; 
 let TRAFFIC_KEY = null; 
 let apiRoleDetectionRan = false; 
-let coloredRouteLayers = []; 
+let coloredRouteLayers = [];
+// Replace with your own Mapbox public access token (starts with pk.)
+const MAPBOX_TOKEN = window.MAPBOX_TOKEN || '';
 const BACKEND_BASE = (function(){
   try {
     const proto = (window && window.location && window.location.protocol) || '';
@@ -175,7 +177,7 @@ function displayTouristRoutes(touristData) {
 
 async function saveRouteToDB(routeData) {
   try {
-    const response = await fetch("http://localhost:5000/save-route", {
+    const response = await fetch(`${BACKEND_BASE}/save-route`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -412,7 +414,7 @@ async function tomtomGeocode(query, key) {
     params.set('lat', center.lat);
     params.set('lon', center.lng);
   }
-  const res = await fetchWithTimeout(`http://localhost:5000/proxy/tomtom/search?${params.toString()}`, {}, 15000);
+  const res = await fetchWithTimeout(`${BACKEND_BASE}/proxy/tomtom/search?${params.toString()}`, {}, 15000);
   if (!res.ok) return null;
   const data = await res.json();
   if (!data || !Array.isArray(data.results) || data.results.length === 0) return null;
@@ -501,7 +503,7 @@ async function fetchTomTomCategoryNear(lat, lon, categoryKey, key) {
     limit: '10'
   });
   try {
-    const res = await fetchWithTimeout(`http://localhost:5000/proxy/tomtom/category?${params.toString()}`, {}, 15000);
+    const res = await fetchWithTimeout(`${BACKEND_BASE}/proxy/tomtom/category?${params.toString()}`, {}, 15000);
     if (!res.ok) return [];
     const data = await res.json();
     if (!data || !Array.isArray(data.results)) return [];
@@ -647,7 +649,7 @@ async function fetchTrafficSummary(routeGeometry) {
       let data = null;
       if (useProxy) {
         try {
-          const proxyUrl = `http://localhost:5000/proxy/tomtom/traffic?lat=${encodeURIComponent(p.lat)}&lon=${encodeURIComponent(p.lon)}`;
+          const proxyUrl = `${BACKEND_BASE}/proxy/tomtom/traffic?lat=${encodeURIComponent(p.lat)}&lon=${encodeURIComponent(p.lon)}`;
           const res = await fetchWithTimeout(proxyUrl, {}, 8000);
           if (res && res.ok) data = await res.json();
         } catch (e) { data = null; }
@@ -1015,7 +1017,7 @@ async function fetchTrafficSeverityForPoint(lat, lon) {
     // Try server proxy first to avoid client-side key/CORS issues
     let data = null;
     try {
-      const proxyUrl = `http://localhost:5000/proxy/tomtom/traffic?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+      const proxyUrl = `${BACKEND_BASE}/proxy/tomtom/traffic?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
       const res = await fetchWithTimeout(proxyUrl, {}, 6000);
       if (res && res.ok) data = await res.json();
     } catch (_) { data = null; }
@@ -1353,7 +1355,7 @@ async function searchComprehensivePlaces(routeGeometry) {
 
     let endpoints = [
       // Prefer local proxy to avoid CORS issues when available
-      'http://localhost:5000/proxy/overpass',
+      `${BACKEND_BASE}/proxy/overpass`,
       'https://overpass-api.de/api/interpreter',
       'https://overpass.kumi.systems/api/interpreter',
       'https://overpass.nchc.org.tw/api/interpreter',
@@ -1362,7 +1364,7 @@ async function searchComprehensivePlaces(routeGeometry) {
 
     if (isFileOrigin) {
       console.warn('Running from file:// origin — skipping remote Overpass endpoints to avoid CORS/DNS failures. Will try local proxy only, then fallback.');
-      endpoints = ['http://localhost:5000/proxy/overpass'];
+      endpoints = [`${BACKEND_BASE}/proxy/overpass`];
     }
     
     for (const endpoint of endpoints) {
@@ -1618,7 +1620,7 @@ async function geocode(location) {
   // Add proximity/country bias to improve Indian city results
   const center = map && typeof map.getCenter === 'function' ? map.getCenter() : null;
   const proximity = center ? `&proximity=${center.lng},${center.lat}` : '';
-  const mapboxToken = 'pk.eyJ1IjoiamQxMjA2IiwiYSI6ImNtZGJxZGE0MzBuZXgycXIyaHZlNHhjMjkifQ.fhXRKJLNhYo5xB992ZIbVg';
+  const mapboxToken = MAPBOX_TOKEN;
   try {
     const mbUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(trimmed)}.json?limit=1&language=en&country=in${proximity}&access_token=${mapboxToken}`;
     const mbRes = await fetchWithTimeout(mbUrl, {}, 9000);
@@ -1637,7 +1639,7 @@ async function geocode(location) {
       limit: '1',
       countrycodes: 'in'
     });
-    const res = await fetchWithTimeout(`http://localhost:5000/proxy/nominatim/search?${params.toString()}`, {}, 12000);
+    const res = await fetchWithTimeout(`${BACKEND_BASE}/proxy/nominatim/search?${params.toString()}`, {}, 12000);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
@@ -1661,7 +1663,7 @@ async function geocode(location) {
 
 async function getVehicleSuggestion(distance) {
   try {
-    const res = await fetchWithTimeout("http://localhost:5000/suggest", {
+    const res = await fetchWithTimeout(`${BACKEND_BASE}/suggest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ distanceKm: parseFloat(distance) })
@@ -1957,7 +1959,7 @@ async function findRoute() {
 
   // Save to DB
   try {
-    fetch("http://localhost:5000/save-route", {
+    fetch(`${BACKEND_BASE}/save-route`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2380,7 +2382,7 @@ async function findTouristRoute() {
 
     if (currentRouteMeta?.source && currentRouteMeta?.destination) {
       try {
-        fetch("http://localhost:5000/save-route", {
+        fetch(`${BACKEND_BASE}/save-route`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -2681,7 +2683,7 @@ async function searchNearbyPlaces(lat, lng, query, radius) {
       radius: radius,
       limit: '5'
     });
-    const response = await fetchWithTimeout(`http://localhost:5000/proxy/nominatim/search?${params.toString()}`, {}, 10000);
+    const response = await fetchWithTimeout(`${BACKEND_BASE}/proxy/nominatim/search?${params.toString()}`, {}, 10000);
     if (!response.ok) return [];
     const data = await response.json();
     
@@ -3018,7 +3020,7 @@ async function useCurrentLocationForSource() {
           lon,
           format: 'jsonv2'
         });
-        const res = await fetchWithTimeout(`http://localhost:5000/proxy/nominatim/reverse?${params.toString()}`, {}, 10000);
+        const res = await fetchWithTimeout(`${BACKEND_BASE}/proxy/nominatim/reverse?${params.toString()}`, {}, 10000);
         const data = await res.json();
         const disp = data && (data.display_name || (data.address && (data.address.city || data.address.town || data.address.village)));
         document.getElementById('source').value = disp || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
@@ -3251,7 +3253,7 @@ async function fallbackLandmarkSearch(bbox) {
         bounded: '1',
         limit: '10'
       });
-      const res = await fetchWithTimeout(`http://localhost:5000/proxy/nominatim/search?${params.toString()}`, {}, 10000);
+      const res = await fetchWithTimeout(`${BACKEND_BASE}/proxy/nominatim/search?${params.toString()}`, {}, 10000);
       
       if (res.ok) {
         const data = await res.json();

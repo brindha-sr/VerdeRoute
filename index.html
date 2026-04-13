@@ -455,9 +455,17 @@
     }
 
     // Load recent routes
+    const _backendBase = (function(){
+      try {
+        const proto = (window && window.location && window.location.protocol) || '';
+        if (proto === 'file:' || proto === 'null' || !proto) return 'http://localhost:5000';
+        return (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'http://localhost:5000';
+      } catch(_) { return 'http://localhost:5000'; }
+    })();
+
     async function loadRecent() {
       try {
-        const res = await fetch('http://localhost:5000/recent-routes?limit=8');
+        const res = await fetch(`${_backendBase}/recent-routes?limit=8`);
         const data = await res.json();
         const tbody = document.querySelector('#recentTable tbody');
         if (!data.items || data.items.length === 0) {

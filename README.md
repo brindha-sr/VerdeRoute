@@ -39,12 +39,8 @@ Frontend:
 - Open `index.html` directly in your browser, or serve statically (e.g., VS Code Live Server).
 
 ## Configuration
-- Mapbox token: replace both occurrences of `access_token=...` in `map.js` (two URLs).
-- Port alignment: backend defaults to `5000`. In `map.js`, the suggestions call is:
-```js
-fetch("http://localhost:3000/suggest", { ... })
-```
-Change `3000` to `5000` to match the backend, or update `server.js` to listen on port `3000`.
+- Mapbox token: set `window.MAPBOX_TOKEN = 'pk.your_token_here'` in `index.html` before loading `map.js`, or assign it at the top of `map.js`.
+- Port alignment: backend defaults to `5000`. All API calls in `map.js` and `index.html` use `BACKEND_BASE` which is auto-detected from `window.location.origin`, falling back to `http://localhost:5000`.
 - Database name: `ecoFindDB` in `server.js`. Adjust if you prefer a different DB name.
 
 ## Keyboard Shortcuts
