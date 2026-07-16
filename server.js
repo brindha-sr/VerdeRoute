@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-// You provided a single API key to use for TomTom services.
-// If you prefer to use environment variables, set TOMTOM_PRIMARY_KEY and TOMTOM_SECONDARY_KEY before starting the server.
 const TOMTOM_PRIMARY_KEY = process.env.TOMTOM_PRIMARY_KEY || 'YTdu01NcxIfytU6EFEV891Yh3rGflVDW';
 const TOMTOM_SECONDARY_KEY = process.env.TOMTOM_SECONDARY_KEY || 'YTdu01NcxIfytU6EFEV891Yh3rGflVDW';
 const TOMTOM_BASE_URL = 'https://api.tomtom.com/search/2';
