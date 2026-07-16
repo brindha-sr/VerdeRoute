@@ -59,12 +59,6 @@
 
 Open DevTools (F12) → Console tab and look for:
 
-### Should NOT see:
-- ❌ 91+ errors
-- ❌ 912+ warnings
-- ❌ 400 bad request errors
-- ❌ "Cannot read property" errors
-- ❌ "renderCachedPrimaryRoute is not a function"
 
 ### Should see:
 - ✅ Clean console or minimal debug messages
