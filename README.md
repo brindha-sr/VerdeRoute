@@ -7,7 +7,7 @@ A simple full‑stack app to plan routes and estimate CO₂ emissions, with smar
 
 ---
 
-## Overview
+## Overview of the project
 GreenRoute estimates CO₂ emissions for a trip and suggests greener alternatives based on distance, vehicle type, and average speed assumptions. It stores past trips and displays recent history on the home screen.
 
 ## Features
@@ -24,7 +24,7 @@ GreenRoute estimates CO₂ emissions for a trip and suggests greener alternative
 - Backend: Node.js, Express, CORS, Mongoose/MongoDB
 
 ## Prerequisites
-- Node.js 18+
+- Node.js 
 - MongoDB running locally on `mongodb://127.0.0.1:27017`
 - Mapbox Directions API access token
 
