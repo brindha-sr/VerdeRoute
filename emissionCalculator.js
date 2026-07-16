@@ -1,31 +1,3 @@
-/*
-  Vehicle Emission Calculator (UMD)
-
-  Exports:
-    - estimateEmissions(inputs, overrides?) -> { totalEmissionsGramsCO2, breakdown }
-    - createCalculator(overrides?) -> { estimate(inputs) }
-
-  Inputs object (all strings are case-insensitive):
-    - vehicleType: 'car' | 'bike' | 'bus' | 'truck' | 'electric' | 'hybrid' | ...
-    - fuelType: 'petrol' | 'diesel' | 'cng' | 'electric' | 'hybrid' | 'lpg' | 'ethanol' | ...
-    - distance: number
-    - distanceUnit?: 'km' | 'mile' (default: 'km')
-    - routeType?: 'city' | 'highway' (default: 'city')
-    - traffic?: 'normal' | 'stop_and_go' | 'light' (default: 'normal')
-    - modelYear?: number
-    - vehicleAgeYears?: number (if both provided, ageYears wins)
-    - loadFactor?: number (1.0 means baseline load; >1 increases consumption)
-    - engineSizeLiters?: number (optional, used to gently scale fuel use)
-    - electricitySource?: 'grid_avg' | 'coal' | 'gas' | 'hydro' | 'wind' | 'solar' | 'nuclear' (default: 'grid_avg')
-    - claimedEfficiency?: number (e.g., 6.5)
-    - claimedEfficiencyUnit?:
-        'l_per_100km' | 'km_per_liter' | 'mpg' | 'kwh_per_100km' | 'wh_per_km' | 'kg_per_100km'
-
-  Notes:
-    - For liquid fuels, consumption is in liters per 100 km.
-    - For CNG, consumption is in kg per 100 km.
-    - For electric, consumption is in kWh per 100 km.
-*/
 
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
